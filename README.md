@@ -80,3 +80,13 @@
         - The core user is the only one with access to the original and the mapped
         - Others won't be able to verify the changes (no access to the original) 
  
+# Comparing images and image conversions
+- Perceptual hash: ignores color and develop series of weights for Hamming distance
+- Avoiding lossy compression due to image conversion: the images should be broken down into a universal format before processing regardless of whether slight modifications (from lossy copmression conversion) to the individual pixel values have taken place
+    - Repeatedly converting to JPEG converges in amount of compression saved
+    - Potential idea: run JPEG conversion repeatedly to an impractical image quality (that's worse then what anyone will ever use) so that if the actual image is converted to JPEG, it will still be run through this convergence algorithm
+    - Do different lossy compression algorithms compress differently? Employ a system of feedback between lossy compression convergence of different compression algorithms
+    - Main idea: we should always end up with roughly the same low-quality image before we run the focal points mapping
+    - Using perceptual image hashing also helps with this: we can calculate Hamming viability of the individual focal regions 
+    - Problem: using slightly modified pixel values in jumps for tree algorithm -- can't trust that the converged low-quality pre-mapping image will be exactly the same each time (small differences in pixel values)
+    - Solution to above problem: use bucket-based perceptual hashing around focal points to make steps in tree algorithms (slight differences in cluster of pixels will still allow us to move to the correct place)
