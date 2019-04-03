@@ -1,6 +1,14 @@
 {
     "files.associations": {
         "ostream": "cpp",
-        "iostream": "cpp"
+        "iostream": "cpp",
+        "tuple": "cpp",
+        "iosfwd": "cpp",
+        "memory": "cpp",
+        "vector": "cpp",
+        "list": "cpp",
+        "string": "cpp",
+        "cstdint": "cpp",
+        "bitset": "cpp"
     }
 }

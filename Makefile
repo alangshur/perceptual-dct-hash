@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall -g
+CXXFLAGS = -std=c++17 -Wall -Wextra -g
 INCLUDE = -Iinclude
 SRC_PATH = ./src
 MODULES = $(shell ./utils/modules.sh)
@@ -16,6 +16,10 @@ all:
 	@make --silent clean
 	@make --silent main
 	@make --silent run
+	@make --silent clean
+
+.PHONY: comp
+comp: $(MODULES)
 	@make --silent clean
 
 .PHONY: clean
