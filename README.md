@@ -4,6 +4,13 @@
   - Disallow layered mappings
   - Specify degree of image modification freedom
 - Easy validation API
+
+### Software Requirements/Libraries:
+- C++17 
+- Bash interpreter
+- openCV (opencv4)
+- pkg-config
+- HomeBrew
   
 ### Planned system specs
 - Bucket-based image hashing
@@ -90,3 +97,11 @@
     - Using perceptual image hashing also helps with this: we can calculate Hamming viability of the individual focal regions 
     - Problem: using slightly modified pixel values in jumps for tree algorithm -- can't trust that the converged low-quality pre-mapping image will be exactly the same each time (small differences in pixel values)
     - Solution to above problem: use bucket-based perceptual hashing around focal points to make steps in tree algorithms (slight differences in cluster of pixels will still allow us to move to the correct place)
+
+# To Do
+- Implement class structure (maybe hierarchy?) for BITMAPINFOHEADER, BITMAPV4HEADER, and BITMAPV5HEADER
+    - Should be able to handle different header types as well as color tables and header sizes (124 vs 40)
+    - Alternative: convert all other header types to windows v5 BITMAPV5HEADER 124-byte
+    - http://fileformats.archiveteam.org/wiki/BMP#OS.2F2_Bitmap_Array
+    - https://docs.microsoft.com/en-us/windows/desktop/api/wingdi/ns-wingdi-tagbitmapinfoheader
+- Find and implement good API for BMP conversions from every main image format (libjpeg, libtiff, libpng, libraw, libgif)

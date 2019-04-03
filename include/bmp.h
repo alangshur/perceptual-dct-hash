@@ -10,33 +10,14 @@
 #include "bmp.h"
 using namespace std;
 
-// BMP header struct definition
+// BMP header struct type definition
 typedef struct {
     int16_t signature; 
     uint32_t fileSize;
     uint32_t dataOffset;
 } BMPHeader;
 
-// BMP info header color masks struct definition
-typedef struct {
-    uint32_t redChannelMask;
-    uint32_t greenChannelMask;
-    uint32_t blueChannelMask;
-    uint32_t alphaChannelMask;
-} BMPColorMasks;
-
-// BMP info header color parameters struct definition
-typedef struct {
-    uint32_t colorSpaceType;
-    uint32_t redChannelGamma;
-    uint32_t greenChannelGamma;
-    uint32_t blueChannelGamma;
-    uint32_t renderIntent;
-    uint32_t ICCProfileData;
-    uint32_t ICCProfilesize;
-} BMPColorParams;
-
-// BMP info header struct definition
+// BMP info header struct type definition
 typedef struct {
     uint32_t infoHeaderSize; 
     uint32_t width;
@@ -49,34 +30,32 @@ typedef struct {
     uint32_t verticalResolution;
     uint32_t colorCount;
     uint32_t importantColorCount;
-    BMPColorMasks colorMasks;
-    BMPColorParams colorParams;
 } BMPInfoHeader;
 
 // BMP pixel array type definition
-typedef vector<tuple<uint8_t, uint8_t, uint8_t, uint8_t>> BMPPixelArray;
+typedef vector<tuple<uint8_t, uint8_t, uint8_t>> BMPPixelArray;
 
 class BMPImage {
     public:
         BMPImage(const string& filename);
         ~BMPImage(void);
+        void loadBMPImage(void); 
         BMPHeader& getBMPHeader(void) { return header; }
         BMPInfoHeader& getBMPInfoHeader(void) { return infoHeader; }
         BMPPixelArray& getBMPPixelArray(void) { return *pixelArray; }
+        BMPImage(const BMPImage&) = delete;
+        BMPImage& operator=(const BMPImage&) = delete;
 
     private:
 
-        // additional BMP type definitions
-        typedef vector<uint8_t> BMPColorSpaceEndpoints;
-        typedef vector<uint32_t> BMPColorTable;
+        // image file object
+        FILE* file;
 
         // image parameters
         BMPHeader header;
         BMPInfoHeader infoHeader;
 
-        // image data containers
-        unique_ptr<BMPColorSpaceEndpoints> colorSpaceEndpoints;
-        unique_ptr<BMPColorTable> colorTable;
+        // image pixel data container
         unique_ptr<BMPPixelArray> pixelArray;
 };
 

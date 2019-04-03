@@ -1,31 +1,15 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra -g
+CXXFLAGS = -std=c++17 -Wall -Wextra
 INCLUDE = -Iinclude
-SRC_PATH = ./src
-MODULES = $(shell ./utils/modules.sh)
+MODULES = $(shell find src -name *.cpp)
+LIBS = $(shell pkg-config --cflags --libs opencv4) # opencv
 NAME = main
 
+all: $(NAME)
+
 $(NAME): $(MODULES)
-	$(CXX) $^ -o $@
-
-%.o: $(SRC_PATH)/%.cpp
-	$(CXX) $(CXXFLAGS) $(INCLUDE) -c $< -o $@
-
-.PHONY: all
-all:
-	@make --silent clean
-	@make --silent main
-	@make --silent run
-	@make --silent clean
-
-.PHONY: comp
-comp: $(MODULES)
-	@make --silent clean
+	g++ $(CXXFLAGS) $(INCLUDE) $(LIBS) $^ -o $@
 
 .PHONY: clean
 clean: 
 	rm -f $(NAME) *.o
-
-.PHONY: run
-run:
-	./$(NAME)
