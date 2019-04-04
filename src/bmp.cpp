@@ -75,8 +75,9 @@ void BMPImage::loadBMPImage(void) {
             get<1>((*pixelArray)[(i * infoHeader.width) + j]) = pixelBuf[(j * bytesPerPixel) + 1];
             get<0>((*pixelArray)[(i * infoHeader.width) + j]) = pixelBuf[(j * bytesPerPixel) + 2];
         }
-        fseek(file, rowSize - (infoHeader.width * bytesPerPixel), SEEK_CUR);
     }
+
+    cout << ftell(file) << endl;
 }
  
 /*
