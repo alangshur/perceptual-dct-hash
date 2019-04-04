@@ -1,0 +1,48 @@
+#ifndef GRID_H
+#define GRID_H
+
+#include <cstdio>
+#include <memory>
+#include <vector>
+#include <stdlib.h>
+using namespace std;
+
+// grid dimensions struct type definition
+typedef struct {
+    size_t height;
+    size_t width;
+} GridDimensions;
+
+// grid pixel struct type definition
+typedef struct {
+    uint8_t red;
+    uint8_t green;
+    uint8_t blue;
+} GridPixel;
+
+// grid index struct type definition
+typedef struct {
+    uint32_t row; // 1-indexed
+    uint32_t column; // 1-indexed
+} GridIndex;
+
+class PixelGrid {
+    public:
+        PixelGrid(const GridDimensions& d);
+        ~PixelGrid(void);
+        GridPixel getPixel(const GridIndex& i) const;
+        GridDimensions getGridDimensions(void) const { return dimensions; }
+        void setPixel(const GridIndex& i, const GridPixel& p);
+        void printPixelGrid(void) const;
+
+    private:
+    
+        // dynamic pixel data container
+        unique_ptr<vector<GridPixel>> pixelArray;
+
+        // pixel grid parameters
+        const GridDimensions dimensions;
+        const size_t gridSize;
+};
+
+#endif

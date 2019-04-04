@@ -12,10 +12,11 @@ using namespace std;
 
 /*
  * Title: BMPImage constructor
- * Parameters (1): filename (std::string)
+ * Parameters (1): target filename (std::string)
  * Functionality: Opens supplied filename and saves file session.
  */
-BMPImage::BMPImage(const string& filename) : file(nullptr) {
+BMPImage::BMPImage(const string& filename) : loadedFlag(false), file(nullptr),
+    imageGrid(nullptr) {
 
     // validate filename
     string validFilename = filename;
@@ -32,9 +33,10 @@ BMPImage::BMPImage(const string& filename) : file(nullptr) {
     if (image.data == NULL) throw "BMPImage Error: Failed to convert file.";
     image.convertTo(imageBMP, CV_8UC3);
     cv::imwrite(basename + ".bmp", imageBMP);
+    bmpFileName = basename + ".bmp";
 
     // open file
-    file = fopen((basename + ".bmp").c_str(), "rb");
+    file = fopen(bmpFileName.c_str(), "rb");
     if (file == nullptr) throw "BMPImage Error: Failed to open file.";
 }
 
@@ -44,6 +46,8 @@ BMPImage::BMPImage(const string& filename) : file(nullptr) {
  * Functionality: Parses BMP file and individually loads header, info header, and pixel data.
  */
 void BMPImage::loadBMPImage(void) {
+    if (loadedFlag) throw "BMPImage Error: Image already loaded.";
+    if (fseek(file, 0, SEEK_SET)) throw "BMPImage Error: Failed to seek pixel data.";
 
     // read 14-byte BMP header
     size_t bytesRead = 0;
@@ -83,7 +87,7 @@ void BMPImage::loadBMPImage(void) {
     // read pixel image data
     const size_t bytesPerPixel = infoHeader.bitsPerPixel / 8;
     if (fseek(file, header.dataOffset, SEEK_SET)) throw "BMPImage Error: Failed to seek pixel data."; 
-    pixelArray.reset(new BMPPixelArray(infoHeader.width * infoHeader.height));
+    imageGrid.reset(new PixelGrid({infoHeader.height, infoHeader.width}));
     const size_t rowSize = ceil(((double) (infoHeader.bitsPerPixel * infoHeader.width)) / 32.0) * 4;
     for (ssize_t i = (infoHeader.height - 1); i >= 0; i--) {
         bytesRead = 0;
@@ -91,11 +95,13 @@ void BMPImage::loadBMPImage(void) {
         do { bytesRead += fread(pixelBuf + bytesRead, sizeof(uint8_t), rowSize, file); }
         while (bytesRead < rowSize);
         for (size_t j = 0; j < infoHeader.width; j++) {
-            get<2>((*pixelArray)[(i * infoHeader.width) + j]) = pixelBuf[j * bytesPerPixel];
-            get<1>((*pixelArray)[(i * infoHeader.width) + j]) = pixelBuf[(j * bytesPerPixel) + 1];
-            get<0>((*pixelArray)[(i * infoHeader.width) + j]) = pixelBuf[(j * bytesPerPixel) + 2];
+            (*imageGrid).setPixel({(uint32_t) (i + 1), (uint32_t) (j + 1)}, {pixelBuf[(j * bytesPerPixel) + 2], 
+                pixelBuf[(j * bytesPerPixel) + 1], pixelBuf[j * bytesPerPixel]});
         }
     }
+
+    // set image to loaded
+    loadedFlag = true;
 }
 
 /*
@@ -105,5 +111,6 @@ void BMPImage::loadBMPImage(void) {
  */
 BMPImage::~BMPImage(void) {
     fclose(file);
-    pixelArray.reset(nullptr);
+    if (remove(bmpFileName.c_str())) cerr << "BMPImage Error: Failed to clean myself." << endl; 
+    imageGrid.reset(nullptr);
 }

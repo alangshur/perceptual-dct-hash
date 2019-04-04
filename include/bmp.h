@@ -8,6 +8,7 @@
 #include <memory>
 #include <stdlib.h>
 #include "bmp.h"
+#include "grid.h"
 using namespace std;
 
 // BMP header struct type definition
@@ -32,34 +33,34 @@ typedef struct {
     uint32_t importantColorCount;
 } BMPInfoHeader;
 
-// BMP pixel array type definition
-typedef vector<tuple<uint8_t, uint8_t, uint8_t>> BMPPixelArray;
-
 class BMPImage {
     public:
         BMPImage(const string& filename);
         ~BMPImage(void);
         void loadBMPImage(void); 
-        size_t getBMPImageSize(void) { return header.fileSize; }
-        size_t getBMPImageWidth(void) { return infoHeader.width; }
-        size_t getBMPImageHeight(void) { return infoHeader.height; }
-        BMPHeader& getBMPHeader(void) { return header; }
-        BMPInfoHeader& getBMPInfoHeader(void) { return infoHeader; }
-        BMPPixelArray& getBMPPixelArray(void) { return *pixelArray; }
+        size_t getBMPImageSize(void) const { return header.fileSize; }
+        size_t getBMPImageWidth(void) const { return infoHeader.width; }
+        size_t getBMPImageHeight(void) const { return infoHeader.height; }
+        BMPHeader getBMPHeader(void) const { return header; }
+        BMPInfoHeader getBMPInfoHeader(void) const { return infoHeader; }
+        PixelGrid& getBMPPixelGrid(void) const { return *imageGrid; }
+        void printBMPPixelGrid(void) const { (*imageGrid).printPixelGrid(); }
         BMPImage(const BMPImage&) = delete;
         BMPImage& operator=(const BMPImage&) = delete;
 
     private:
+        bool loadedFlag;
 
         // image file object
         FILE* file;
+        string bmpFileName;
 
         // image parameters
         BMPHeader header;
         BMPInfoHeader infoHeader;
 
-        // image pixel data container
-        unique_ptr<BMPPixelArray> pixelArray;
+        // image pixel grid
+        unique_ptr<PixelGrid> imageGrid;
 };
 
 #endif
