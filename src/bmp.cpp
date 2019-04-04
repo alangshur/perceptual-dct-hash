@@ -21,7 +21,7 @@ BMPImage::BMPImage(const string& filename) {
 /*
  * Title: BMPImage method
  * Parameters (0): N/A
- * Functionality:
+ * Functionality: Parses BMP file and individually loads header, info header, and pixel data.
  */
 void BMPImage::loadBMPImage(void) {
 
@@ -65,7 +65,7 @@ void BMPImage::loadBMPImage(void) {
     if (fseek(file, header.dataOffset, SEEK_SET)) throw "BMPImage Error: Failed to seek pixel data."; 
     pixelArray.reset(new BMPPixelArray(infoHeader.width * infoHeader.height));
     const size_t rowSize = ceil(((double) (infoHeader.bitsPerPixel * infoHeader.width)) / 32.0) * 4;
-    for (size_t i = 0; i < infoHeader.height; i++) {
+    for (ssize_t i = (infoHeader.height - 1); i >= 0; i--) {
         bytesRead = 0;
         uint8_t pixelBuf[rowSize];
         do { bytesRead += fread(pixelBuf + bytesRead, sizeof(uint8_t), rowSize, file); }
@@ -76,10 +76,8 @@ void BMPImage::loadBMPImage(void) {
             get<0>((*pixelArray)[(i * infoHeader.width) + j]) = pixelBuf[(j * bytesPerPixel) + 2];
         }
     }
-
-    cout << ftell(file) << endl;
 }
- 
+
 /*
  * Title: BMPImage destructor
  * Parameters (0): N/A
