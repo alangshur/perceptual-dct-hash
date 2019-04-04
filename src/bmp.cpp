@@ -1,7 +1,9 @@
 #include <iostream>
-#include <stdio.h>
 #include <cmath>
-#include <bitset>
+#include <string>
+#include <regex>
+#include <stdio.h>
+#include <opencv2/opencv.hpp>
 #include "bmp.h"
 using namespace std;
 
@@ -13,8 +15,26 @@ using namespace std;
  * Parameters (1): filename (std::string)
  * Functionality: Opens supplied filename and saves file session.
  */
-BMPImage::BMPImage(const string& filename) {
-    file = fopen(filename.c_str(), "rb");
+BMPImage::BMPImage(const string& filename) : file(nullptr) {
+
+    // validate filename
+    string validFilename = filename;
+    const size_t pos = filename.find_last_of('/');
+    if (pos != string::npos) validFilename = filename.substr(pos + 1);
+    regex r("^.*[.](png|jpeg|jpg|bmp|tiff)$");
+    if (!regex_match(validFilename, r)) 
+        throw "BMPImage Error: Invalid image or filename format.";
+
+    // convert to bmp
+    cv::Mat imageBMP;
+    const string basename = validFilename.substr(0, validFilename.find('.'));
+    cv::Mat image = cv::imread(filename, cv::IMREAD_COLOR);
+    if (image.data == NULL) throw "BMPImage Error: Failed to convert file.";
+    image.convertTo(imageBMP, CV_8UC3);
+    cv::imwrite(basename + ".bmp", imageBMP);
+
+    // open file
+    file = fopen((basename + ".bmp").c_str(), "rb");
     if (file == nullptr) throw "BMPImage Error: Failed to open file.";
 }
 

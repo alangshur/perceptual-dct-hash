@@ -13,3 +13,4 @@ $(NAME): $(MODULES)
 .PHONY: clean
 clean: 
 	rm -f $(NAME) *.o
+	rm -f *.bmp

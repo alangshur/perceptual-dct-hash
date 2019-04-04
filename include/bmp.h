@@ -40,6 +40,9 @@ class BMPImage {
         BMPImage(const string& filename);
         ~BMPImage(void);
         void loadBMPImage(void); 
+        size_t getBMPImageSize(void) { return header.fileSize; }
+        size_t getBMPImageWidth(void) { return infoHeader.width; }
+        size_t getBMPImageHeight(void) { return infoHeader.height; }
         BMPHeader& getBMPHeader(void) { return header; }
         BMPInfoHeader& getBMPInfoHeader(void) { return infoHeader; }
         BMPPixelArray& getBMPPixelArray(void) { return *pixelArray; }
