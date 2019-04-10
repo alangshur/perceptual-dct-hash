@@ -6,7 +6,8 @@ using namespace std;
 
 class PerceptualHash {
     public:
-        PerceptualHash()
+        PerceptualHash(PixelGrid& grid);
+        
     private:
 };
 

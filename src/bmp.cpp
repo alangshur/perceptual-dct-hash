@@ -9,6 +9,7 @@ using namespace std;
 
 #define BMP_HEADER_SIZE 14
 #define COLOR_ENDPOINTS_SIZE 36
+#define BITMAP_INFO_HEADER_SIZE 40
 
 /*
  * Title: BMPImage constructor
@@ -66,6 +67,8 @@ void BMPImage::loadBMPImage(void) {
         sizeof(uint32_t) - bytesRead, file); }
     while (bytesRead < sizeof(uint32_t));
     infoHeader.infoHeaderSize = *((uint32_t*) infoHeaderSizeFieldBuf);
+    if (infoHeader.infoHeaderSize != BITMAP_INFO_HEADER_SIZE)
+        throw "BMPImage Error: Invalid header data.";
 
     // read variable-size info header
     bytesRead = 0;
