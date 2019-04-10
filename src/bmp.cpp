@@ -16,8 +16,8 @@ using namespace std;
  * Parameters (1): target filename (std::string)
  * Functionality: Opens supplied filename and saves file session.
  */
-BMPImage::BMPImage(const string& filename) : loadedFlag(false), file(nullptr),
-    imageGrid(nullptr) {
+BMPImage::BMPImage(const string& filename, const bool expediteLoad) : loadedFlag(false), 
+    expediteLoad(expediteLoad), file(nullptr), imageGrid(nullptr) {
 
     // validate filename
     string validFilename = filename;
@@ -80,6 +80,7 @@ void BMPImage::loadBMPImage(void) {
     infoHeader.height = *((uint32_t*) &infoHeaderBuf[4]);
     infoHeader.planeCount = *((uint16_t*) &infoHeaderBuf[8]);
     infoHeader.bitsPerPixel = *((uint16_t*) &infoHeaderBuf[10]);
+    if (expediteLoad) goto EXPEDITE_READ_DATA;
     infoHeader.compression = *((uint32_t*) &infoHeaderBuf[12]);
     infoHeader.imageSize = *((uint32_t*) &infoHeaderBuf[16]);
     infoHeader.horizontalResolution = *((uint32_t*) &infoHeaderBuf[20]);
@@ -88,7 +89,7 @@ void BMPImage::loadBMPImage(void) {
     infoHeader.importantColorCount = *((uint32_t*) &infoHeaderBuf[32]);
 
     // read pixel image data
-    const size_t bytesPerPixel = infoHeader.bitsPerPixel / 8;
+    EXPEDITE_READ_DATA: const size_t bytesPerPixel = infoHeader.bitsPerPixel / 8;
     if (fseek(file, header.dataOffset, SEEK_SET)) throw "BMPImage Error: Failed to seek pixel data."; 
     imageGrid.reset(new PixelGrid({infoHeader.height, infoHeader.width}));
     const size_t rowSize = ceil(((double) (infoHeader.bitsPerPixel * infoHeader.width)) / 32.0) * 4;

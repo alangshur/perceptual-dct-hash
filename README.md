@@ -110,4 +110,8 @@
 - Reduce the DCT (signal energy lies at low frequency in upper left of domain 8 x 8 grid)
 - Compute the average value (not including the outlier first frequency term)
 - For each remaining frequency (presumably 64 of them), add a 1 bit to the integer if that frequency is greater than the mean (and a 0 otherwise)
-- Run the constructed 64-bit word through SHA-512 with fixed token based on checksum buckets
+
+# Perceptual Hash Alternatives
+- Mean vs DCT
+- Mean used for image perceptual hashes (more strict about modifications)
+- DCT used for strict token perceptual hashes

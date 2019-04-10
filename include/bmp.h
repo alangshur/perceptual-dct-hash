@@ -35,7 +35,7 @@ typedef struct {
 
 class BMPImage {
     public:
-        BMPImage(const string& filename);
+        BMPImage(const string& filename, const bool expediteLoad = true);
         ~BMPImage(void);
         void loadBMPImage(void); 
         size_t getBMPImageSize(void) const { return header.fileSize; }
@@ -43,13 +43,16 @@ class BMPImage {
         size_t getBMPImageHeight(void) const { return infoHeader.height; }
         BMPHeader getBMPHeader(void) const { return header; }
         BMPInfoHeader getBMPInfoHeader(void) const { return infoHeader; }
-        PixelGrid& getBMPPixelGrid(void) const { return *imageGrid; }
+        PixelGrid& getBMPPixelGrid(void) { return *imageGrid; }
         void printBMPPixelGrid(void) const { (*imageGrid).printPixelGrid(); }
         BMPImage(const BMPImage&) = delete;
         BMPImage& operator=(const BMPImage&) = delete;
 
     private:
+
+        // state conditions
         bool loadedFlag;
+        bool expediteLoad;
 
         // image file object
         FILE* file;
