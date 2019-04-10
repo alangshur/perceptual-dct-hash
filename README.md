@@ -8,11 +8,11 @@
 ### Software Requirements/Libraries:
 - C++17 
 - openCV (opencv4)
-- pkg-config
-- Homebrew
+- openSSL
+- pkg-config (note: you may have to manually set PKG_CONFIG_PATH)
+- Homebrew (recommended)
 
 # To Do
-- Implement grid class that allows for easy manipulation of pixel mappings
 - Investigate perceptual hashing and central algorithm
 - Implement algorithm to populate bucket tokens
 - Implement pixel selection algorithm
@@ -102,3 +102,12 @@
     - Using perceptual image hashing also helps with this: we can calculate Hamming viability of the individual focal regions 
     - Problem: using slightly modified pixel values in jumps for tree algorithm -- can't trust that the converged low-quality pre-mapping image will be exactly the same each time (small differences in pixel values)
     - Solution to above problem: use bucket-based perceptual hashing around focal points to make steps in tree algorithms (slight differences in cluster of pixels will still allow us to move to the correct place)
+
+# Perceptual Hash Algorithm (Survive color histogram and gamma adjustments)
+- Reduce pixel size (depending on original size)
+- Convert to greyscale or normalize pixel values (convert to 8-bit pixel intensity)
+- Compute the discrete cosine transform (Fourier-like transformation)
+- Reduce the DCT (signal energy lies at low frequency in upper left of domain 8 x 8 grid)
+- Compute the average value (not including the outlier first frequency term)
+- For each remaining frequency (presumably 64 of them), add a 1 bit to the integer if that frequency is greater than the mean (and a 0 otherwise)
+- Run the constructed 64-bit word through SHA-512 with fixed token based on checksum buckets

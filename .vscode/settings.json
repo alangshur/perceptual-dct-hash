@@ -55,5 +55,6 @@
         "utility": "cpp",
         "deque": "cpp",
         "regex": "cpp"
-    }
+    },
+    "python.pythonPath": "/usr/local/bin/python"
 }
