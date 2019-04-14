@@ -30,8 +30,9 @@ class PixelGrid {
     public:
         PixelGrid(const GridDimensions& d);
         ~PixelGrid(void);
-        GridPixel getPixel(const GridIndex& i) const;
-        GridDimensions getGridDimensions(void) const { return dimensions; }
+        GridPixel& getPixel(const GridIndex& i) const;
+        size_t getGridHeight(void) const { return dimensions.height; }
+        size_t getGridWidth(void) const { return dimensions.width; }
         void setPixel(const GridIndex& i, const GridPixel& p);
         void printPixelGrid(void) const;
 
@@ -41,7 +42,7 @@ class PixelGrid {
         unique_ptr<vector<GridPixel>> pixelArray;
 
         // pixel grid parameters
-        const GridDimensions dimensions;
+        GridDimensions dimensions;
         const size_t gridSize;
 };
 

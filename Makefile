@@ -1,15 +1,15 @@
 CXX = g++
-CXXFLAGS = -std=c++17 -Wall -Wextra
+CXXFLAGS = -std=c++17 -Wall
+CXXFLAGS_WARN_OFF += -Wno-unused-private-field
 INCLUDE = -Iinclude
 MODULES = $(shell find src -name *.cpp)
 LIBS = $(shell pkg-config --cflags --libs opencv4) # opencv
-LIBS += $(shell pkg-config --cflags --libs openssl) # openssl
 NAME = main
 
 all: $(NAME)
 
 $(NAME): $(MODULES)
-	g++ $(CXXFLAGS) $(INCLUDE) $(LIBS) $^ -o $@
+	g++ $(CXXFLAGS) $(CXXFLAGS_WARN_OFF) $(INCLUDE) $(LIBS) $^ -o $@
 
 .PHONY: clean
 clean: 

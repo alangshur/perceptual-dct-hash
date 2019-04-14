@@ -2,6 +2,7 @@
 #include <string>
 #include <cstdio>
 #include "bmp.h"
+#include "phash.h"
 using namespace std;
 
 int main(int args, char* argv[]) {
@@ -10,7 +11,8 @@ int main(int args, char* argv[]) {
     try {
         BMPImage image(filename); 
         image.loadBMPImage();
-        image.printBMPPixelGrid();
+        ImagePerceptualHash hash(image.getBMPPixelGrid());
+        hash.executeHash();
     }
     catch (const char* e) { cout << e << endl; }
     return 0;

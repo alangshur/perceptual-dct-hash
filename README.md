@@ -8,7 +8,6 @@
 ### Software Requirements/Libraries:
 - C++17 
 - openCV (opencv4)
-- openSSL
 - pkg-config (note: you may have to manually set PKG_CONFIG_PATH)
 - Homebrew (recommended)
 

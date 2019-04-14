@@ -14,8 +14,8 @@ class PerceptualHash {
     protected:
         PerceptualHash(const PixelGrid& grid) : computedFlag(false), 
             grid(grid), result(0) {}
-        ~PerceptualHash(void);
-        virtual void executeHash(void);
+        ~PerceptualHash(void) {}
+        virtual void executeHash(void) = 0;
 
         // state condition
         bool computedFlag; 
@@ -30,15 +30,25 @@ class PerceptualHash {
 class ImagePerceptualHash : PerceptualHash {
     public:
         ImagePerceptualHash(const PixelGrid& grid) : PerceptualHash(grid) {}
-        ~ImagePerceptualHash(void);
+        ~ImagePerceptualHash(void) {}
         void executeHash(void);
 };
 
 class TokenPerceptualHash : PerceptualHash {
     public:
-        TokenPerceptualHash(const PixelGrid& grid) : PerceptualHash(grid) {}
-        ~TokenPerceptualHash(void);
+        TokenPerceptualHash(const PixelGrid& grid) : PerceptualHash(grid), 
+            regionHash(false), region({0, 0}) {}
+        TokenPerceptualHash(const PixelGrid& grid, const GridDimensions region) :
+            PerceptualHash(grid), regionHash(true), region(region) {}
+        ~TokenPerceptualHash(void) {}
         void executeHash(void);
+
+    private:
+        void executeTokenHash(void);
+        void executeTokenRegionHash(void);
+
+        const bool regionHash;
+        const GridDimensions region;
 };
 
 #endif
