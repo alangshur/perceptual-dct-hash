@@ -42,7 +42,7 @@ BMPImage::BMPImage(const string& filename, const bool expediteLoad) : loadedFlag
 }
 
 /*
- * Title: BMPImage method
+ * Title: BMPImage public method
  * Parameters (0): N/A
  * Functionality: Parses BMP file and individually loads header, info header, and pixel data.
  */

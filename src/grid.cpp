@@ -16,7 +16,7 @@ PixelGrid::PixelGrid(const GridDimensions& d) : dimensions(d),
 }
 
 /*
- * Title: PixelGrid method
+ * Title: PixelGrid public method
  * Parameters (1): grid index (GridIndex)
  * Functionality: Retrieves and returns indicated pixel value from grid.
  */
@@ -28,7 +28,7 @@ GridPixel& PixelGrid::getPixel(const GridIndex& i) const {
 }
 
 /*
- * Title: PixelGrid method
+ * Title: PixelGrid public method
  * Parameters (2): grid index (GridIndex), grid pixel value (GridPixel)
  * Functionality: Sets pixel at indiciated location to supplied value.
  */
@@ -40,7 +40,7 @@ void PixelGrid::setPixel(const GridIndex& i, const GridPixel& p) {
 }
 
 /*
- * Title: PixelGrid method
+ * Title: PixelGrid public method
  * Parameters (0): N/A
  * Functionality: Prints RGB pixel value of entire grid.
  */

@@ -4,8 +4,8 @@
 #include "grid.h"
 using namespace std;
  
-// perceptual hash string type definition
-typedef uint64_t PHS;
+// perceptual hash string struct type definition
+typedef struct { uint64_t data[8]; } PHS;
 
 class PerceptualHash {
     public:
@@ -13,7 +13,7 @@ class PerceptualHash {
 
     protected:
         PerceptualHash(const PixelGrid& grid) : computedFlag(false), 
-            grid(grid), result(0) {}
+            grid(grid), result({0, 0, 0, 0, 0, 0, 0, 0}) {}
         ~PerceptualHash(void) {}
         virtual void executeHash(void) = 0;
 
@@ -32,6 +32,9 @@ class ImagePerceptualHash : PerceptualHash {
         ImagePerceptualHash(const PixelGrid& grid) : PerceptualHash(grid) {}
         ~ImagePerceptualHash(void) {}
         void executeHash(void);
+
+    private:
+        void normalizeGridRGB(const PixelGrid& pixelGrid, PixelGrid& normalizedGrid) const;
 };
 
 class TokenPerceptualHash : PerceptualHash {
