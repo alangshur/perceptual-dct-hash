@@ -15,8 +15,9 @@ int main(int args, char* argv[]) {
         image.loadBMPImage();
         ImagePerceptualHash hash(image.getBMPPixelGrid());
         hash.executeHash();
+        hash.printHashBits();
         double duration = (clock() - start) / double(CLOCKS_PER_SEC);
-        cout << "Processing time: " << to_string(duration) << endl << flush;
+        cout << endl <<  "Processing time: " << to_string(duration) << endl << flush;
     }
     catch (const char* e) { cout << e << endl; }
     return 0;

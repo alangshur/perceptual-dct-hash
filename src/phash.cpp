@@ -1,10 +1,25 @@
 #include <cstdio>
 #include <cmath>
 #include <iostream>
+#include <bitset>
+#include <string.h>
 #include "phash.h"
 using namespace std;
 
-#define NORMALIZATION_DIMENSION 32
+/*
+ * Title: ImagePerceptualHash constructor
+ * Parameters (2): grid hash target (PixelGrid), normalization dimensions (uint32_t)
+ * Functionality: Initializes dynamic grid memory.
+ */
+ImagePerceptualHash::ImagePerceptualHash(const PixelGrid& grid, 
+    const uint32_t normalizationSize) : 
+    PerceptualHash(grid), normalizationDimension(normalizationSize), 
+    hashColorLength(pow(normalizationDimension, 2) / HASH_SEGMENT_SIZE) {
+    result.redData.reset(new vector<uint64_t>(hashColorLength));
+    result.greenData.reset(new vector<uint64_t>(hashColorLength));
+    result.blueData.reset(new vector<uint64_t>(hashColorLength));
+    result.combinedData.reset(new vector<uint64_t>(hashColorLength));
+}
 
 /*
  * Title: ImagePerceptualHash public method
@@ -14,15 +29,58 @@ using namespace std;
 void ImagePerceptualHash::executeHash(void) {
     if (computedFlag) throw "ImagePerceptualHash Error: Hash already computed.";
 
+    // zero hash memory
+    memset(&((*(result.redData)).front()), 0, sizeof(uint64_t) * (*(result.redData)).size());
+    memset(&((*(result.greenData)).front()), 0, sizeof(uint64_t) * (*(result.greenData)).size());
+    memset(&((*(result.blueData)).front()), 0, sizeof(uint64_t) * (*(result.blueData)).size());
+    memset(&((*(result.combinedData)).front()), 0, sizeof(uint64_t) * (*(result.combinedData)).size());
+
     // iteratively normalize grid RGB 
-    PixelGrid normalizedGrid({NORMALIZATION_DIMENSION, NORMALIZATION_DIMENSION});
-    GridPixel p = normalizeGridRGB(grid, normalizedGrid);
+    PixelGrid normalizedGrid({normalizationDimension, normalizationDimension});
+    GridPixel meanRGBValues = normalizeGridRGB(grid, normalizedGrid);
 
-    cout << to_string(p.red) << endl;
-    cout << to_string(p.green) << endl;
-    cout << to_string(p.blue) << endl;
-
+    // compute RGB hash values
+    computeRGBHash(normalizedGrid, meanRGBValues);
     computedFlag = true;
+}
+
+/*
+ * Title: ImagePerceptualHash public method
+ * Parameters (0): N/A
+ * Functionality: Prints bit image of RGB perceptual image hash.
+ */
+void ImagePerceptualHash::printHashBits(void) {
+    if (!computedFlag) throw "ImagePerceptualHash Error: Hash not yet computed.";
+
+    // print red hash bits
+    cout << endl << "Red Hash:" << endl << flush;
+    for (uint8_t i = 0; i < hashColorLength; i++) {
+        bitset<64> bucket((*(result.redData))[i]);
+        cout << bucket << flush;
+    }
+
+    // print green hash bits
+    cout << endl << endl << "Green Hash:" << endl << flush;
+    for (uint8_t i = 0; i < hashColorLength; i++) {
+        bitset<64> bucket((*(result.greenData))[i]);
+        cout << bucket << flush;
+    }
+
+    // print blue hash bits
+    cout << endl << endl << "Blue Hash:" << endl << flush;
+    for (uint8_t i = 0; i < hashColorLength; i++) {
+        bitset<64> bucket((*(result.blueData))[i]);
+        cout << bucket << flush;
+    }
+
+    // print combined hash bits
+    cout << endl << endl << "Combined Hash:" << endl << flush;
+    for (uint8_t i = 0; i < hashColorLength; i++) {
+        bitset<64> bucket((*(result.combinedData))[i]);
+        cout << bucket << flush;
+    }
+
+    cout << endl << flush;
 }
 
 /*
@@ -36,28 +94,28 @@ GridPixel ImagePerceptualHash::normalizeGridRGB(const PixelGrid& pixelGrid,
     size_t runningRedSum = 0, runningGreenSum = 0, runningBlueSum = 0;
 
     // initialize horizontal grid parsing parameters
-    if (!(pixelGrid.getGridWidth() % NORMALIZATION_DIMENSION)) {
-        horizontalScaleSize = pixelGrid.getGridWidth() / NORMALIZATION_DIMENSION;
-        horizontalOverflow = NORMALIZATION_DIMENSION;
+    if (!(pixelGrid.getGridWidth() % normalizationDimension)) {
+        horizontalScaleSize = pixelGrid.getGridWidth() / normalizationDimension;
+        horizontalOverflow = normalizationDimension;
     } 
     else {
-        horizontalScaleSize = pixelGrid.getGridWidth() / (NORMALIZATION_DIMENSION - 1);
-        horizontalOverflow = pixelGrid.getGridWidth() % (NORMALIZATION_DIMENSION - 1);
+        horizontalScaleSize = pixelGrid.getGridWidth() / (normalizationDimension - 1);
+        horizontalOverflow = pixelGrid.getGridWidth() % (normalizationDimension - 1);
     }
 
     // initialize vertical grid parsing parameters
-    if (!(pixelGrid.getGridHeight() % NORMALIZATION_DIMENSION)) {
-        verticalScaleSize = pixelGrid.getGridHeight() / NORMALIZATION_DIMENSION;
-        verticalOverflow = NORMALIZATION_DIMENSION;
+    if (!(pixelGrid.getGridHeight() % normalizationDimension)) {
+        verticalScaleSize = pixelGrid.getGridHeight() / normalizationDimension;
+        verticalOverflow = normalizationDimension;
     }
     else {
-        verticalScaleSize = pixelGrid.getGridHeight() / (NORMALIZATION_DIMENSION - 1);
-        verticalOverflow = pixelGrid.getGridHeight() % (NORMALIZATION_DIMENSION - 1);
+        verticalScaleSize = pixelGrid.getGridHeight() / (normalizationDimension - 1);
+        verticalOverflow = pixelGrid.getGridHeight() % (normalizationDimension - 1);
     }
 
     // build reduced grid
-    for (uint32_t row = 0; row < (NORMALIZATION_DIMENSION - 1); row++) {
-        for (uint32_t col = 0; col < (NORMALIZATION_DIMENSION - 1); col++) {
+    for (uint32_t row = 0; row < (normalizationDimension - 1); row++) {
+        for (uint32_t col = 0; col < (normalizationDimension - 1); col++) {
 
             // take RGB pixel sums for block
             size_t blockSumRed = 0, blockSumGreen = 0, blockSumBlue = 0;
@@ -84,8 +142,8 @@ GridPixel ImagePerceptualHash::normalizeGridRGB(const PixelGrid& pixelGrid,
     } 
 
     // build overflow column
-    const uint32_t overflowColumn = horizontalScaleSize * (NORMALIZATION_DIMENSION - 1);
-    for (uint32_t row = 0; row < (NORMALIZATION_DIMENSION - 1); row++) {
+    const uint32_t overflowColumn = horizontalScaleSize * (normalizationDimension - 1);
+    for (uint32_t row = 0; row < (normalizationDimension - 1); row++) {
 
         // take RGB pixel sums for overflow block
         size_t blockSumRed = 0, blockSumGreen = 0, blockSumBlue = 0;
@@ -106,13 +164,13 @@ GridPixel ImagePerceptualHash::normalizeGridRGB(const PixelGrid& pixelGrid,
 
         // calculate block mean
         uint32_t overflowDivisor = verticalScaleSize * horizontalOverflow;
-        normalizedGrid.setPixel({row + 1, NORMALIZATION_DIMENSION}, {uint8_t(blockSumRed / overflowDivisor), 
+        normalizedGrid.setPixel({row + 1, normalizationDimension}, {uint8_t(blockSumRed / overflowDivisor), 
             uint8_t(blockSumGreen / overflowDivisor), uint8_t(blockSumBlue / overflowDivisor)});
     }
 
     // build overflow row
-    const uint32_t overflowRow = verticalScaleSize * (NORMALIZATION_DIMENSION - 1);
-    for (uint32_t col = 0; col < (NORMALIZATION_DIMENSION - 1); col++) {
+    const uint32_t overflowRow = verticalScaleSize * (normalizationDimension - 1);
+    for (uint32_t col = 0; col < (normalizationDimension - 1); col++) {
 
         // take RGB pixel sums for overflow block
         size_t blockSumRed = 0, blockSumGreen = 0, blockSumBlue = 0;
@@ -133,7 +191,7 @@ GridPixel ImagePerceptualHash::normalizeGridRGB(const PixelGrid& pixelGrid,
 
         // calculate block mean
         uint32_t overflowDivisor = verticalOverflow * horizontalScaleSize;
-        normalizedGrid.setPixel({NORMALIZATION_DIMENSION, col + 1}, {uint8_t(blockSumRed / overflowDivisor), 
+        normalizedGrid.setPixel({normalizationDimension, col + 1}, {uint8_t(blockSumRed / overflowDivisor), 
             uint8_t(blockSumGreen / overflowDivisor), uint8_t(blockSumBlue / overflowDivisor)});
     }
 
@@ -153,11 +211,53 @@ GridPixel ImagePerceptualHash::normalizeGridRGB(const PixelGrid& pixelGrid,
     runningGreenSum += blockSumGreen;
     runningBlueSum += blockSumBlue;
     uint32_t overflowDivisor = verticalOverflow * horizontalOverflow;
-    normalizedGrid.setPixel({NORMALIZATION_DIMENSION, NORMALIZATION_DIMENSION}, {uint8_t(blockSumRed / overflowDivisor), 
+    normalizedGrid.setPixel({normalizationDimension, normalizationDimension}, {uint8_t(blockSumRed / overflowDivisor), 
         uint8_t(blockSumGreen / overflowDivisor), uint8_t(blockSumBlue / overflowDivisor)});
     uint32_t imageDivisor = pixelGrid.getGridHeight() * pixelGrid.getGridWidth();
     return {uint8_t(runningRedSum / imageDivisor), uint8_t(runningGreenSum / imageDivisor), 
         uint8_t(runningBlueSum / imageDivisor)};
+}
+
+/*
+ * Title: ImagePerceptualHash private method
+ * Parameters (0): N/A
+ * Functionality: Breaks down normalized image into hash using mean RGB key.
+ */
+void ImagePerceptualHash::computeRGBHash(const PixelGrid& normalizedGrid, 
+    const GridPixel& mean) {
+    
+    // iterate through normalized grid
+    for (uint32_t i = 1; i <= normalizationDimension; i++) {
+        for (uint32_t j = 1; j <= normalizationDimension; j++) {
+            uint32_t position = (((i - 1) * normalizationDimension) + (j - 1));
+            uint32_t bucket = position / 64;
+            uint32_t iterator = position % 64;
+
+            // compute RGB hash
+            const GridPixel& pixel = normalizedGrid.getPixel({i, j});
+            if (pixel.red >= mean.red) (*(result.redData))[bucket] |= 0x1 << iterator;
+            if (pixel.green >= mean.green) (*(result.greenData))[bucket] |= 0x1 << iterator;
+            if (pixel.blue >= mean.blue) (*(result.blueData))[bucket] |= 0x1 << iterator;
+
+            // compute combined hash
+            uint8_t majorityBool = uint8_t(pixel.red >= mean.red) + 
+                uint8_t(pixel.green >= mean.green) + uint8_t(pixel.blue >= mean.blue);
+            if ((majorityBool == 0) || (majorityBool == 2)) 
+                (*(result.combinedData))[bucket] |= 0x1 << iterator;
+        }
+    }    
+}
+
+/*
+ * Title: ImagePerceptualHash destructor
+ * Parameters (0): N/A
+ * Functionality: Frees dynamic memory.
+ */
+ImagePerceptualHash::~ImagePerceptualHash(void) {
+    result.redData.reset(nullptr);
+    result.greenData.reset(nullptr);
+    result.blueData.reset(nullptr);
+    result.combinedData.reset(nullptr);
 }
 
 /*
