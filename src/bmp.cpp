@@ -1,6 +1,8 @@
 #include <iostream>
 #include <cmath>
 #include <string>
+#include <chrono>
+#include <random>
 #include <regex>
 #include <stdio.h>
 #include <opencv2/opencv.hpp>
@@ -10,6 +12,10 @@ using namespace std;
 #define BMP_HEADER_SIZE 14
 #define COLOR_ENDPOINTS_SIZE 36
 #define BITMAP_INFO_HEADER_SIZE 40
+
+static const char alphaNumLib[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 
+    'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'Y', 'X', 'Z',
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
 
 /*
  * Title: BMPImage constructor
@@ -27,14 +33,20 @@ BMPImage::BMPImage(const string& filename, const bool expediteLoad) : loadedFlag
     if (!regex_match(validFilename, r)) 
         throw "BMPImage Error: Invalid image or filename format.";
 
+    // generate random identifier string
+    string identifier;
+    minstd_rand0 rv(chrono::system_clock::now().time_since_epoch().count());
+    for (uint8_t i = 0; i < 16; i++) 
+        identifier += alphaNumLib[rv() % 30];
+
     // convert to bmp
     cv::Mat imageBMP;
     const string basename = validFilename.substr(0, validFilename.find('.'));
     cv::Mat image = cv::imread(filename, cv::IMREAD_COLOR);
     if (image.data == NULL) throw "BMPImage Error: Failed to convert file.";
     image.convertTo(imageBMP, CV_8UC3);
-    cv::imwrite(basename + ".bmp", imageBMP);
-    bmpFileName = basename + ".bmp";
+    cv::imwrite(basename + "-" + identifier + ".bmp", imageBMP);
+    bmpFileName = basename + "-" + identifier + ".bmp";
 
     // open file
     file = fopen(bmpFileName.c_str(), "rb");

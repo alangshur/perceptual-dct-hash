@@ -9,7 +9,7 @@ using namespace std;
 int main(int args, char* argv[]) {
     if (args != 3) return 0;
     string filename1 = argv[1];
-    string filename2 = argv[1];
+    string filename2 = argv[2];
     try {
         clock_t start = clock();
 
