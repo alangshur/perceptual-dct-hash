@@ -16,8 +16,12 @@ void ImagePerceptualHash::executeHash(void) {
 
     // iteratively normalize grid RGB 
     PixelGrid normalizedGrid({NORMALIZATION_DIMENSION, NORMALIZATION_DIMENSION});
-    normalizeGridRGB(grid, normalizedGrid);
-    
+    GridPixel p = normalizeGridRGB(grid, normalizedGrid);
+
+    cout << to_string(p.red) << endl;
+    cout << to_string(p.green) << endl;
+    cout << to_string(p.blue) << endl;
+
     computedFlag = true;
 }
 
@@ -26,8 +30,10 @@ void ImagePerceptualHash::executeHash(void) {
  * Parameters (0): N/A
  * Functionality: Reduces supplied image into target grid by normalizing RGB pixel clusters.
  */
-void ImagePerceptualHash::normalizeGridRGB(const PixelGrid& pixelGrid, PixelGrid& normalizedGrid) const {
+GridPixel ImagePerceptualHash::normalizeGridRGB(const PixelGrid& pixelGrid, 
+    PixelGrid& normalizedGrid) const {
     uint32_t horizontalScaleSize, verticalScaleSize, horizontalOverflow = 0, verticalOverflow = 0;
+    size_t runningRedSum = 0, runningGreenSum = 0, runningBlueSum = 0;
 
     // initialize horizontal grid parsing parameters
     if (!(pixelGrid.getGridWidth() % NORMALIZATION_DIMENSION)) {
@@ -65,13 +71,15 @@ void ImagePerceptualHash::normalizeGridRGB(const PixelGrid& pixelGrid, PixelGrid
                 }
             }
 
+            // update running sums
+            runningRedSum += blockSumRed;
+            runningGreenSum += blockSumGreen;
+            runningBlueSum += blockSumBlue;
+
             // calculate block mean
-            uint32_t overflowDivisor = verticalScaleSize * horizontalScaleSize;
-            uint8_t blockRedMean = blockSumRed / overflowDivisor;
-            uint8_t blockGreenMean = blockSumGreen / overflowDivisor;
-            uint8_t blockBlueMean = blockSumBlue / overflowDivisor;
-            normalizedGrid.setPixel({row + 1, col + 1}, {blockRedMean, blockGreenMean, 
-                blockBlueMean});
+            uint32_t blockDivisor = verticalScaleSize * horizontalScaleSize;
+            normalizedGrid.setPixel({row + 1, col + 1}, {uint8_t(blockSumRed / blockDivisor), 
+                uint8_t(blockSumGreen / blockDivisor), uint8_t(blockSumBlue / blockDivisor)});
         }
     } 
 
@@ -91,13 +99,15 @@ void ImagePerceptualHash::normalizeGridRGB(const PixelGrid& pixelGrid, PixelGrid
             }
         }
 
+        // update running sums
+        runningRedSum += blockSumRed;
+        runningGreenSum += blockSumGreen;
+        runningBlueSum += blockSumBlue;
+
         // calculate block mean
         uint32_t overflowDivisor = verticalScaleSize * horizontalOverflow;
-        uint8_t blockRedMean = blockSumRed / overflowDivisor;
-        uint8_t blockGreenMean = blockSumGreen / overflowDivisor;
-        uint8_t blockBlueMean = blockSumBlue / overflowDivisor;
-        normalizedGrid.setPixel({row + 1, NORMALIZATION_DIMENSION}, {blockRedMean, 
-            blockGreenMean, blockBlueMean});
+        normalizedGrid.setPixel({row + 1, NORMALIZATION_DIMENSION}, {uint8_t(blockSumRed / overflowDivisor), 
+            uint8_t(blockSumGreen / overflowDivisor), uint8_t(blockSumBlue / overflowDivisor)});
     }
 
     // build overflow row
@@ -116,13 +126,15 @@ void ImagePerceptualHash::normalizeGridRGB(const PixelGrid& pixelGrid, PixelGrid
             }
         }
 
+        // update running sums
+        runningRedSum += blockSumRed;
+        runningGreenSum += blockSumGreen;
+        runningBlueSum += blockSumBlue;
+
         // calculate block mean
         uint32_t overflowDivisor = verticalOverflow * horizontalScaleSize;
-        uint8_t blockRedMean = blockSumRed / overflowDivisor;
-        uint8_t blockGreenMean = blockSumGreen / overflowDivisor;
-        uint8_t blockBlueMean = blockSumBlue / overflowDivisor;
-        normalizedGrid.setPixel({NORMALIZATION_DIMENSION, col + 1}, {blockRedMean, 
-            blockGreenMean, blockBlueMean});
+        normalizedGrid.setPixel({NORMALIZATION_DIMENSION, col + 1}, {uint8_t(blockSumRed / overflowDivisor), 
+            uint8_t(blockSumGreen / overflowDivisor), uint8_t(blockSumBlue / overflowDivisor)});
     }
 
     // build overflow row/col
@@ -135,12 +147,17 @@ void ImagePerceptualHash::normalizeGridRGB(const PixelGrid& pixelGrid, PixelGrid
             blockSumBlue += pixel.blue;
         }
     }
+
+    // wrap-up overflow normalization
+    runningRedSum += blockSumRed;
+    runningGreenSum += blockSumGreen;
+    runningBlueSum += blockSumBlue;
     uint32_t overflowDivisor = verticalOverflow * horizontalOverflow;
-    uint8_t blockRedMean = blockSumRed / overflowDivisor;
-    uint8_t blockGreenMean = blockSumGreen / overflowDivisor;
-    uint8_t blockBlueMean = blockSumBlue / overflowDivisor;
-    normalizedGrid.setPixel({NORMALIZATION_DIMENSION, NORMALIZATION_DIMENSION}, {blockRedMean, 
-        blockGreenMean, blockBlueMean});
+    normalizedGrid.setPixel({NORMALIZATION_DIMENSION, NORMALIZATION_DIMENSION}, {uint8_t(blockSumRed / overflowDivisor), 
+        uint8_t(blockSumGreen / overflowDivisor), uint8_t(blockSumBlue / overflowDivisor)});
+    uint32_t imageDivisor = pixelGrid.getGridHeight() * pixelGrid.getGridWidth();
+    return {uint8_t(runningRedSum / imageDivisor), uint8_t(runningGreenSum / imageDivisor), 
+        uint8_t(runningBlueSum / imageDivisor)};
 }
 
 /*

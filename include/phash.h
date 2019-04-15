@@ -34,7 +34,7 @@ class ImagePerceptualHash : PerceptualHash {
         void executeHash(void);
 
     private:
-        void normalizeGridRGB(const PixelGrid& pixelGrid, PixelGrid& normalizedGrid) const;
+        GridPixel normalizeGridRGB(const PixelGrid& pixelGrid, PixelGrid& normalizedGrid) const;
 };
 
 class TokenPerceptualHash : PerceptualHash {
