@@ -21,15 +21,11 @@ typedef struct {
 typedef struct { uint64_t data; } TPHS;
 
 class PerceptualHash {
-    public:
-        bool compareHashes(const IPHS& hs1, const IPHS& hs2) { return false; }
-        bool compareHashes(const TPHS& hs1, const TPHS& hs2) { return false; }
-
     protected:
         PerceptualHash(const PixelGrid& grid) : computedFlag(false), grid(grid) {}
         ~PerceptualHash(void) {}
         virtual void executeHash(void) = 0;
-        virtual void printHashBits(void) = 0;
+        virtual void printHashBits(void) const = 0;
 
         // state condition
         bool computedFlag; 
@@ -41,10 +37,14 @@ class PerceptualHash {
 class ImagePerceptualHash : PerceptualHash {
     public:
         ImagePerceptualHash(const PixelGrid& grid, 
-            const uint32_t normalizationDimensions = DEFAULT_NORMALIZATION_DIMENSION);
+            const uint32_t normalizationSize = DEFAULT_NORMALIZATION_DIMENSION);
         ~ImagePerceptualHash(void);
+        static bool compareHashes(ImagePerceptualHash& hs1, ImagePerceptualHash& hs2, 
+            const uint32_t errorDegree, const uint32_t normalizationSize = DEFAULT_NORMALIZATION_DIMENSION);
         void executeHash(void);
-        void printHashBits(void);
+        void printHashBits(void) const;
+        IPHS& getHash(void) { if (computedFlag) return result; 
+            else throw "ImagePerceptualHash Error: Hash not yet computed."; }
 
     private:
         GridPixel normalizeGridRGB(const PixelGrid& pixelGrid, PixelGrid& normalizedGrid) const;
@@ -61,10 +61,15 @@ class ImagePerceptualHash : PerceptualHash {
 class TokenPerceptualHash : PerceptualHash {
     public:
         TokenPerceptualHash(const PixelGrid& grid) : PerceptualHash(grid), result({}), 
-            regionHash(false), region({}) {}
+            regionHashFlag(false), region({}) {}
         TokenPerceptualHash(const PixelGrid& grid, const GridDimensions region) :
-            PerceptualHash(grid), result({}), regionHash(true), region(region) {}
+            PerceptualHash(grid), result({}), regionHashFlag(true), region(region) {}
+        static bool compareHashes(TokenPerceptualHash& hs1, TokenPerceptualHash& hs2, 
+            const uint32_t errorDegree, const uint32_t normalizationSize = DEFAULT_NORMALIZATION_DIMENSION);
         void executeHash(void);
+        void printHashBits(void) const;
+        TPHS& getHash(void) { if (computedFlag) return result; 
+            else throw "TokenPerceptualHash Error: Hash not yet computed."; }
 
     private:
         void executeTokenHash(void);
@@ -74,7 +79,7 @@ class TokenPerceptualHash : PerceptualHash {
         TPHS result;
 
         // hash region parameters
-        const bool regionHash;
+        const bool regionHashFlag;
         const GridDimensions region;
 };
 

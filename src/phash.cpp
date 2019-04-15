@@ -21,6 +21,45 @@ ImagePerceptualHash::ImagePerceptualHash(const PixelGrid& grid,
     result.combinedData.reset(new vector<uint64_t>(hashColorLength));
 }
 
+bool ImagePerceptualHash::compareHashes(ImagePerceptualHash& hs1, ImagePerceptualHash& hs2,
+    const uint32_t errorDegree, const uint32_t normalizationDimension) {
+    uint8_t hashColorLength = pow(normalizationDimension, 2) / HASH_SEGMENT_SIZE;
+    uint32_t redError = 0, greenError = 0, blueError = 0, combinedError = 0;
+
+    // count bit errors
+    for (uint8_t i = 0; i < hashColorLength; i++) {
+        for (uint8_t j = 0; j < HASH_SEGMENT_SIZE; j++) {
+
+            // get red error
+            bool set1 = ((*(hs1.getHash().redData))[i] & (0x1 << j)) != 0;
+            bool set2 = ((*(hs1.getHash().redData))[i] & (0x1 << j)) != 0;
+            if (set1 != set2) redError++;
+
+            // get green error
+            set1 = ((*(hs1.getHash().greenData))[i] & (0x1 << j)) != 0;
+            set2 = ((*(hs1.getHash().greenData))[i] & (0x1 << j)) != 0;
+            if (set1 != set2) greenError++;
+
+            // get blue error
+            set1 = ((*(hs1.getHash().blueData))[i] & (0x1 << j)) != 0;
+            set2 = ((*(hs1.getHash().blueData))[i] & (0x1 << j)) != 0;
+            if (set1 != set2) blueError++;
+
+            // get combined error
+            set1 = ((*(hs1.getHash().combinedData))[i] & (0x1 << j)) != 0;
+            set2 = ((*(hs1.getHash().combinedData))[i] & (0x1 << j)) != 0;
+            if (set1 != set2) combinedError++;
+        }
+    }
+
+    cout << to_string(redError) << endl;
+    cout << to_string(greenError) << endl;
+    cout << to_string(blueError) << endl;
+    cout << to_string(combinedError) << endl;
+    
+    return false;
+}
+
 /*
  * Title: ImagePerceptualHash public method
  * Parameters (0): N/A
@@ -49,7 +88,7 @@ void ImagePerceptualHash::executeHash(void) {
  * Parameters (0): N/A
  * Functionality: Prints bit image of RGB perceptual image hash.
  */
-void ImagePerceptualHash::printHashBits(void) {
+void ImagePerceptualHash::printHashBits(void) const {
     if (!computedFlag) throw "ImagePerceptualHash Error: Hash not yet computed.";
 
     // print red hash bits
@@ -260,6 +299,9 @@ ImagePerceptualHash::~ImagePerceptualHash(void) {
     result.combinedData.reset(nullptr);
 }
 
+bool TokenPerceptualHash::compareHashes(TokenPerceptualHash& hs1, TokenPerceptualHash& hs2,
+    const uint32_t errorDegree, const uint32_t normalizationSize) { return false; }
+
 /*
  * Title: TokenPerceptualHash public method
  * Parameters (0): N/A
@@ -267,10 +309,17 @@ ImagePerceptualHash::~ImagePerceptualHash(void) {
  */
 void TokenPerceptualHash::executeHash(void) {
     if (computedFlag) throw "TokenPerceptualHash Error: Hash already computed.";
-    if (regionHash) executeTokenRegionHash();
+    if (regionHashFlag) executeTokenRegionHash();
     else executeTokenHash();
     computedFlag = true;
 }
+
+/*
+ * Title: TokenPerceptualHash public method
+ * Parameters (0): N/A
+ * Functionality: Prints bit image of single-data perceptual token hash.
+ */
+void TokenPerceptualHash::printHashBits(void) const {}
 
 /*
  * Title: TokenPerceptualHash private method
