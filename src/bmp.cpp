@@ -36,8 +36,7 @@ BMPImage::BMPImage(const string& filename, const bool expediteLoad) : loadedFlag
     // generate random identifier string
     string identifier;
     minstd_rand0 rv(chrono::system_clock::now().time_since_epoch().count());
-    for (uint8_t i = 0; i < 16; i++) 
-        identifier += alphaNumLib[rv() % 30];
+    for (uint8_t i = 0; i < 16; i++) identifier += alphaNumLib[rv() % 30];
 
     // convert to bmp
     cv::Mat imageBMP;

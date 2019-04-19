@@ -4,7 +4,7 @@ CXXFLAGS_WARN_OFF += -Wno-unused-private-field
 INCLUDE = -Iinclude
 MODULES = $(shell find src -name *.cpp)
 LIBS = $(shell pkg-config --cflags --libs opencv4) # opencv
-NAME = main
+NAME = pure-image
 
 all: $(NAME)
 

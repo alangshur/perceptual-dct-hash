@@ -6,25 +6,43 @@
 #include "phash.h"
 using namespace std;
 
+// initialize static member variables
+IPHSErrorWeights ImagePerceptualHash::errorWeights = {
+    0.1, 0.1, 0.1, 0.3, 0.2, 0.1, 0.1
+};
+
 /*
  * Title: ImagePerceptualHash constructor
- * Parameters (2): grid hash target (PixelGrid), normalization dimensions (uint32_t)
- * Functionality: Initializes dynamic grid memory.
+ * Parameters (3): grid hash target (PixelGrid), error weights (IPHSErrorWeights),
+ *   normalization dimensions (uint32_t)
+ * Functionality: Initializes error weights and dynamic grid memory.
  */
 ImagePerceptualHash::ImagePerceptualHash(const PixelGrid& grid, 
     const uint32_t normalizationSize) : 
     PerceptualHash(grid), normalizationDimension(normalizationSize), 
     hashColorLength(pow(normalizationDimension, 2) / HASH_SEGMENT_SIZE) {
+
+    // allocate dynamic memory
     result.redData.reset(new vector<uint64_t>(hashColorLength));
     result.greenData.reset(new vector<uint64_t>(hashColorLength));
     result.blueData.reset(new vector<uint64_t>(hashColorLength));
-    result.combinedData.reset(new vector<uint64_t>(hashColorLength));
+    result.luminanceData.reset(new vector<uint64_t>(hashColorLength));
+    result.grayscaleData.reset(new vector<uint64_t>(hashColorLength));
+    result.combinedData1.reset(new vector<uint64_t>(hashColorLength));
+    result.combinedData2.reset(new vector<uint64_t>(hashColorLength));
 }
 
-bool ImagePerceptualHash::compareHashes(ImagePerceptualHash& hs1, ImagePerceptualHash& hs2,
-    const uint32_t errorDegree, const uint32_t normalizationDimension) {
+/*
+ * Title: ImagePerceptualHash public method
+ * Parameters (5): first hash (ImagePerceptualHash), second hash (ImagePerceptualHash), 
+ *   error tolerance (uint32_t), verbose setting (const bool), normalization dimension (uint32_t)
+ * Functionality: Calculates and analyzes error between two perceptual image hashes.
+ */
+IPHSErrorDiagnosis ImagePerceptualHash::compareHashes(ImagePerceptualHash& hs1, ImagePerceptualHash& hs2,
+    const uint32_t errorDegree, const bool verbose, const uint32_t normalizationDimension) {
     uint8_t hashColorLength = pow(normalizationDimension, 2) / HASH_SEGMENT_SIZE;
-    uint32_t redError = 0, greenError = 0, blueError = 0, combinedError = 0;
+    uint32_t redError = 0, greenError = 0, blueError = 0, luminanceError = 0, 
+        grayscaleError = 0, combinedError1 = 0, combinedError2 = 0;
 
     // count bit errors
     for (uint8_t i = 0; i < hashColorLength; i++) {
@@ -32,32 +50,73 @@ bool ImagePerceptualHash::compareHashes(ImagePerceptualHash& hs1, ImagePerceptua
 
             // get red error
             bool set1 = ((*(hs1.getHash().redData))[i] & (0x1 << j)) != 0;
-            bool set2 = ((*(hs1.getHash().redData))[i] & (0x1 << j)) != 0;
+            bool set2 = ((*(hs2.getHash().redData))[i] & (0x1 << j)) != 0;
             if (set1 != set2) redError++;
 
             // get green error
             set1 = ((*(hs1.getHash().greenData))[i] & (0x1 << j)) != 0;
-            set2 = ((*(hs1.getHash().greenData))[i] & (0x1 << j)) != 0;
+            set2 = ((*(hs2.getHash().greenData))[i] & (0x1 << j)) != 0;
             if (set1 != set2) greenError++;
 
             // get blue error
             set1 = ((*(hs1.getHash().blueData))[i] & (0x1 << j)) != 0;
-            set2 = ((*(hs1.getHash().blueData))[i] & (0x1 << j)) != 0;
+            set2 = ((*(hs2.getHash().blueData))[i] & (0x1 << j)) != 0;
             if (set1 != set2) blueError++;
 
-            // get combined error
-            set1 = ((*(hs1.getHash().combinedData))[i] & (0x1 << j)) != 0;
-            set2 = ((*(hs1.getHash().combinedData))[i] & (0x1 << j)) != 0;
-            if (set1 != set2) combinedError++;
+            // get luminance error
+            set1 = ((*(hs1.getHash().luminanceData))[i] & (0x1 << j)) != 0;
+            set2 = ((*(hs2.getHash().luminanceData))[i] & (0x1 << j)) != 0;
+            if (set1 != set2) luminanceError++;
+
+            // get grayscale error
+            set1 = ((*(hs1.getHash().grayscaleData))[i] & (0x1 << j)) != 0;
+            set2 = ((*(hs2.getHash().grayscaleData))[i] & (0x1 << j)) != 0;
+            if (set1 != set2) grayscaleError++;
+
+            // get combined 1 error
+            set1 = ((*(hs1.getHash().combinedData1))[i] & (0x1 << j)) != 0;
+            set2 = ((*(hs2.getHash().combinedData1))[i] & (0x1 << j)) != 0;
+            if (set1 != set2) combinedError1++;
+
+            // get combined 2 error
+            set1 = ((*(hs1.getHash().combinedData2))[i] & (0x1 << j)) != 0;
+            set2 = ((*(hs2.getHash().combinedData2))[i] & (0x1 << j)) != 0;
+            if (set1 != set2) combinedError2++;
         }
     }
 
-    cout << to_string(redError) << endl;
-    cout << to_string(greenError) << endl;
-    cout << to_string(blueError) << endl;
-    cout << to_string(combinedError) << endl;
+    // compute error percentages
+    IPHSErrorDiagnosis errorDiagnosis;
+    errorDiagnosis.redErrorRat = ((double) redError) / ((double) HASH_SEGMENT_SIZE * hashColorLength);
+    errorDiagnosis.greenErrorRat = ((double) greenError) / ((double) HASH_SEGMENT_SIZE * hashColorLength);
+    errorDiagnosis.blueErrorRat = ((double) blueError) / ((double) HASH_SEGMENT_SIZE * hashColorLength);
+    errorDiagnosis.luminanceErrorRat = ((double) luminanceError) / ((double) HASH_SEGMENT_SIZE * hashColorLength);
+    errorDiagnosis.grayscaleErrorRat = ((double) grayscaleError) / ((double) HASH_SEGMENT_SIZE * hashColorLength);
+    errorDiagnosis.combined1ErrorRat = ((double) combinedError1) / ((double) HASH_SEGMENT_SIZE * hashColorLength);
+    errorDiagnosis.combined2ErrorRat = ((double) combinedError2) / ((double) HASH_SEGMENT_SIZE * hashColorLength);
+
+    // calculate final error with weights
+    errorDiagnosis.resultantError = (errorDiagnosis.redErrorRat * errorWeights.redErrorWeight) + 
+        (errorDiagnosis.greenErrorRat * errorWeights.greenErrorWeight) + 
+        (errorDiagnosis.blueErrorRat * errorWeights.blueErrorWeight) + 
+        (errorDiagnosis.luminanceErrorRat * errorWeights.luminanceErrorWeight) + 
+        (errorDiagnosis.grayscaleErrorRat * errorWeights.grayscaleErrorWeight) + 
+        (errorDiagnosis.combined1ErrorRat * errorWeights.combined1ErrorWeight) +
+        (errorDiagnosis.combined2ErrorRat * errorWeights.combined2ErrorWeight);
+
+    // print verbose output
+    if (verbose) {  
+        cout << "Red Error: " << to_string(errorDiagnosis.redErrorRat) << endl;
+        cout << "Green Error: " << to_string(errorDiagnosis.greenErrorRat) << endl;
+        cout << "Blue Error: " << to_string(errorDiagnosis.blueErrorRat) << endl;
+        cout << "Luminance Error: " << to_string(errorDiagnosis.luminanceErrorRat) << endl;
+        cout << "Grayscale Error: " << to_string(errorDiagnosis.grayscaleErrorRat) << endl;
+        cout << "Combined Error 1: " << to_string(errorDiagnosis.combined1ErrorRat) << endl;
+        cout << "Combined Error 2: " << to_string(errorDiagnosis.combined2ErrorRat) << endl;
+        cout << "Resultant Error: " << to_string(errorDiagnosis.resultantError) << endl << flush;
+    }
     
-    return false;
+    return errorDiagnosis;
 }
 
 /*
@@ -72,7 +131,10 @@ void ImagePerceptualHash::executeHash(void) {
     memset(&((*(result.redData)).front()), 0, sizeof(uint64_t) * (*(result.redData)).size());
     memset(&((*(result.greenData)).front()), 0, sizeof(uint64_t) * (*(result.greenData)).size());
     memset(&((*(result.blueData)).front()), 0, sizeof(uint64_t) * (*(result.blueData)).size());
-    memset(&((*(result.combinedData)).front()), 0, sizeof(uint64_t) * (*(result.combinedData)).size());
+    memset(&((*(result.luminanceData)).front()), 0, sizeof(uint64_t) * (*(result.luminanceData)).size());
+    memset(&((*(result.grayscaleData)).front()), 0, sizeof(uint64_t) * (*(result.grayscaleData)).size());
+    memset(&((*(result.combinedData1)).front()), 0, sizeof(uint64_t) * (*(result.combinedData1)).size());
+    memset(&((*(result.combinedData2)).front()), 0, sizeof(uint64_t) * (*(result.combinedData2)).size());
 
     // iteratively normalize grid RGB 
     PixelGrid normalizedGrid({normalizationDimension, normalizationDimension});
@@ -112,10 +174,31 @@ void ImagePerceptualHash::printHashBits(void) const {
         cout << bucket << flush;
     }
 
-    // print combined hash bits
-    cout << endl << endl << "Combined Hash:" << endl << flush;
+    // print luminance hash bits
+    cout << endl << endl << "Luminance Hash:" << endl << flush;
     for (uint8_t i = 0; i < hashColorLength; i++) {
-        bitset<64> bucket((*(result.combinedData))[i]);
+        bitset<64> bucket((*(result.luminanceData))[i]);
+        cout << bucket << flush;
+    }
+
+    // print grayscale hash bits
+    cout << endl << endl << "Grayscale Hash:" << endl << flush;
+    for (uint8_t i = 0; i < hashColorLength; i++) {
+        bitset<64> bucket((*(result.grayscaleData))[i]);
+        cout << bucket << flush;
+    }
+
+    // print combined hash 1 bits
+    cout << endl << endl << "Combined Hash 1:" << endl << flush;
+    for (uint8_t i = 0; i < hashColorLength; i++) {
+        bitset<64> bucket((*(result.combinedData1))[i]);
+        cout << bucket << flush;
+    }
+
+    // print combined hash 2 bits
+    cout << endl << endl << "Combined Hash 2:" << endl << flush;
+    for (uint8_t i = 0; i < hashColorLength; i++) {
+        bitset<64> bucket((*(result.combinedData2))[i]);
         cout << bucket << flush;
     }
 
@@ -262,8 +345,11 @@ GridPixel ImagePerceptualHash::normalizeGridRGB(const PixelGrid& pixelGrid,
  * Parameters (0): N/A
  * Functionality: Breaks down normalized image into hash using mean RGB key.
  */
-void ImagePerceptualHash::computeRGBHash(const PixelGrid& normalizedGrid, 
-    const GridPixel& mean) {
+void ImagePerceptualHash::computeRGBHash(const PixelGrid& normalizedGrid, const GridPixel& mean) {
+    const uint32_t luminance = 0.2126 * uint32_t(mean.red) + 0.7152 * uint32_t(mean.green) + 
+        0.0722 * uint32_t(mean.blue);
+    const uint8_t grayscaleMean = uint8_t((uint32_t(mean.red) + uint32_t(mean.green) + 
+        uint32_t(mean.blue)) / 3);
     
     // iterate through normalized grid
     for (uint32_t i = 1; i <= normalizationDimension; i++) {
@@ -278,14 +364,28 @@ void ImagePerceptualHash::computeRGBHash(const PixelGrid& normalizedGrid,
             if (pixel.green >= mean.green) (*(result.greenData))[bucket] |= 0x1 << iterator;
             if (pixel.blue >= mean.blue) (*(result.blueData))[bucket] |= 0x1 << iterator;
 
-            // compute combined hash
+            // compute luminance hash
+            const uint32_t pixelLuminance = 0.2126 * uint32_t(pixel.red) + 0.7152 * uint32_t(pixel.green) + 
+                0.0722 * uint32_t(pixel.blue);
+            if (pixelLuminance >= luminance) (*(result.luminanceData))[bucket] |= 0x1 << iterator;
+
+            // compute grayscale hash
+            const uint8_t pixelMean = uint8_t((uint32_t(pixel.red) + uint32_t(pixel.green) + 
+                uint32_t(pixel.blue)) / 3);
+            if (pixelMean >= grayscaleMean) (*(result.grayscaleData))[bucket] |= 0x1 << iterator;
+
+            // compute combined hash 1
             uint8_t majorityBool = uint8_t(pixel.red >= mean.red) + 
                 uint8_t(pixel.green >= mean.green) + uint8_t(pixel.blue >= mean.blue);
             if ((majorityBool == 0) || (majorityBool == 2)) 
-                (*(result.combinedData))[bucket] |= 0x1 << iterator;
+                (*(result.combinedData1))[bucket] |= 0x1 << iterator;
+
+            // compute combined hash 2
+            if ((majorityBool == 1) || (majorityBool == 3)) 
+                (*(result.combinedData2))[bucket] |= 0x1 << iterator;
         }
     }    
-}
+} 
 
 /*
  * Title: ImagePerceptualHash destructor
@@ -296,11 +396,22 @@ ImagePerceptualHash::~ImagePerceptualHash(void) {
     result.redData.reset(nullptr);
     result.greenData.reset(nullptr);
     result.blueData.reset(nullptr);
-    result.combinedData.reset(nullptr);
+    result.luminanceData.reset(nullptr);
+    result.grayscaleData.reset(nullptr);
+    result.combinedData1.reset(nullptr);
+    result.combinedData2.reset(nullptr);
 }
 
+/*
+ * Title: TokenPerceptualHash public method
+ * Parameters (5): first hash (TokenPerceptualHash), second hash (TokenPerceptualHash), 
+ *   error tolerance (uint32_t), verbose setting (bool) normalization dimension (uint32_t)
+ * Functionality: Calculates and analyzes error between two perceptual token hashes.
+ */
 bool TokenPerceptualHash::compareHashes(TokenPerceptualHash& hs1, TokenPerceptualHash& hs2,
-    const uint32_t errorDegree, const uint32_t normalizationSize) { return false; }
+    const uint32_t errorDegree, const bool verbose, const uint32_t normalizationSize) { 
+    return false; 
+}
 
 /*
  * Title: TokenPerceptualHash public method

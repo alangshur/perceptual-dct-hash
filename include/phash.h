@@ -9,15 +9,41 @@ using namespace std;
 #define HASH_SEGMENT_SIZE 64
 #define DEFAULT_NORMALIZATION_DIMENSION 32
 
-// image perceptual hash string struct type definition
+// IPHS struct type definition
 typedef struct { 
     unique_ptr<vector<uint64_t>> redData;
     unique_ptr<vector<uint64_t>> greenData;
     unique_ptr<vector<uint64_t>> blueData;
-    unique_ptr<vector<uint64_t>> combinedData;
+    unique_ptr<vector<uint64_t>> luminanceData;
+    unique_ptr<vector<uint64_t>> grayscaleData;
+    unique_ptr<vector<uint64_t>> combinedData1;
+    unique_ptr<vector<uint64_t>> combinedData2;
 } IPHS;
 
-// token perceptual hash string struct type definition
+// image hash error weights struct type definition
+typedef struct {
+    float redErrorWeight;
+    float greenErrorWeight;
+    float blueErrorWeight;
+    float luminanceErrorWeight;
+    float grayscaleErrorWeight;
+    float combined1ErrorWeight;
+    float combined2ErrorWeight;
+} IPHSErrorWeights;
+
+// image hash error diagnosis
+typedef struct {
+    float redErrorRat;
+    float greenErrorRat;
+    float blueErrorRat;
+    float luminanceErrorRat;
+    float grayscaleErrorRat;
+    float combined1ErrorRat;
+    float combined2ErrorRat;
+    float resultantError;
+} IPHSErrorDiagnosis;
+
+// token hash string struct type definition
 typedef struct { uint64_t data; } TPHS;
 
 class PerceptualHash {
@@ -39,12 +65,16 @@ class ImagePerceptualHash : PerceptualHash {
         ImagePerceptualHash(const PixelGrid& grid, 
             const uint32_t normalizationSize = DEFAULT_NORMALIZATION_DIMENSION);
         ~ImagePerceptualHash(void);
-        static bool compareHashes(ImagePerceptualHash& hs1, ImagePerceptualHash& hs2, 
-            const uint32_t errorDegree, const uint32_t normalizationSize = DEFAULT_NORMALIZATION_DIMENSION);
+        static IPHSErrorDiagnosis compareHashes(ImagePerceptualHash& hs1, ImagePerceptualHash& hs2, 
+            const uint32_t errorDegree, const bool verbose = true,
+            const uint32_t normalizationSize = DEFAULT_NORMALIZATION_DIMENSION);
         void executeHash(void);
         void printHashBits(void) const;
         IPHS& getHash(void) { if (computedFlag) return result; 
             else throw "ImagePerceptualHash Error: Hash not yet computed."; }
+
+        // hash error parameters
+        static IPHSErrorWeights errorWeights;
 
     private:
         GridPixel normalizeGridRGB(const PixelGrid& pixelGrid, PixelGrid& normalizedGrid) const;
@@ -65,7 +95,8 @@ class TokenPerceptualHash : PerceptualHash {
         TokenPerceptualHash(const PixelGrid& grid, const GridDimensions region) :
             PerceptualHash(grid), result({}), regionHashFlag(true), region(region) {}
         static bool compareHashes(TokenPerceptualHash& hs1, TokenPerceptualHash& hs2, 
-            const uint32_t errorDegree, const uint32_t normalizationSize = DEFAULT_NORMALIZATION_DIMENSION);
+            const uint32_t errorDegree, const bool verbose = true,
+            const uint32_t normalizationSize = DEFAULT_NORMALIZATION_DIMENSION);
         void executeHash(void);
         void printHashBits(void) const;
         TPHS& getHash(void) { if (computedFlag) return result; 

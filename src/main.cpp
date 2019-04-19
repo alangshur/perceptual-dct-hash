@@ -21,16 +21,16 @@ int main(int args, char* argv[]) {
         BMPImage image2(filename2); 
         image2.loadBMPImage();
         
-        // // get first hash
-        // ImagePerceptualHash hs1(image1.getBMPPixelGrid());
-        // hs1.executeHash();
+        // get first hash
+        ImagePerceptualHash hs1(image1.getBMPPixelGrid());
+        hs1.executeHash();
 
-        // // get second hash
-        // ImagePerceptualHash hs2(image2.getBMPPixelGrid());
-        // hs2.executeHash();
+        // get second hash
+        ImagePerceptualHash hs2(image2.getBMPPixelGrid());
+        hs2.executeHash();
 
-        // // compare hashes
-        // ImagePerceptualHash::compareHashes(hs1, hs2, 0);
+        // compare hashes
+        ImagePerceptualHash::compareHashes(hs1, hs2, 0);
 
         double duration = (clock() - start) / double(CLOCKS_PER_SEC);
         cout << endl <<  "Processing time: " << to_string(duration) << endl << flush;
