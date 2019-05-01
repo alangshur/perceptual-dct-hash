@@ -12,10 +12,23 @@
 - Homebrew (recommended)
 
 # To Do
-- Investigate perceptual hashing and central algorithm
-- Implement algorithm to populate bucket tokens
-- Implement pixel selection algorithm
-  
+- Build display graph of all modules and future modules
+- Add configuration/time options for full image perceptual hash
+- Build visualization/graphics module that prints grid image
+- Finish discrete cosine transfer perceptual hash (and phash module)
+    - Links:
+        - https://users.cs.cf.ac.uk/Dave.Marshall/Multimedia/node231.html
+        - http://hackerfactor.com/blog/index.php%3F/archives/432-Looks-Like-It.html
+    - Separate full and partial phash modules 
+    - Implement ML algorithm for comparing 32x32 grids (double feedback)
+    - Redundancy technologies to maximize effectivness
+- Modify/add module for combining grid and image file (encapsulation)
+- Build probabilistic point detection module (that uses grid and image) (keypoint matching)
+    - SIFT keypoints
+    - Redundancy technologies to maximize effectivness
+- Build point hashing module using all algorithms
+- Investigate stand-alone capabilities (not using other libraries)
+
 ### Planned system specs
 - Bucket-based image hashing
   - Based on specified DOF
