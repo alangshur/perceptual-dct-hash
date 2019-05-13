@@ -1,10 +1,3 @@
-### Main features
-- Validate image (public permission)
-- Construct image (private permission)
-  - Disallow layered mappings
-  - Specify degree of image modification freedom
-- Easy validation API
-
 ### Software Requirements/Libraries:
 - C++17 
 - openCV (opencv4)
@@ -12,22 +5,36 @@
 - Homebrew (recommended)
 
 # To Do
-- Build display graph of all modules and future modules
-- Add configuration/time options for full image perceptual hash
-- Build visualization/graphics module that prints grid image
-- Finish discrete cosine transfer perceptual hash (and phash module)
+- Clean current modules (style guidelines)
+  - Split perceptual hash modules
+  - Add configuration options for full perceptual hash (faster options)
+  - Unify reference-passing guidelines and privacy modifiers
+  - Build smarter interfaces and documentation
+- Wrap all libraries using CMake for maximum compatibility
+- Build organizational graph of all modules and future modules
+  - All past and future modules
+  - Organization and library dependencies
+- Build graphics module:
+  - Reverse grid printing (tie graphics module into grid)
+  - Graphical feature highlighting
+- Build discrete cosine transfer perceptual hash
     - Links:
         - https://users.cs.cf.ac.uk/Dave.Marshall/Multimedia/node231.html
         - http://hackerfactor.com/blog/index.php%3F/archives/432-Looks-Like-It.html
     - Separate full and partial phash modules 
-    - Implement ML algorithm for comparing 32x32 grids (double feedback)
     - Redundancy technologies to maximize effectivness
-- Modify/add module for combining grid and image file (encapsulation)
-- Build probabilistic point detection module (that uses grid and image) (keypoint matching)
+- Implement pure image algorithm (module)
+  - Feature and keypoint extraction
     - SIFT keypoints
-    - Redundancy technologies to maximize effectivness
-- Build point hashing module using all algorithms
-- Investigate stand-alone capabilities (not using other libraries)
+    - Naive pixel values
+  - Add ML algorithm for comparing 32x32 grids (double feedback)
+  - Redundancy technologies to maximize effectivness
+- Key point scrambbling algorithm (module)
+  - Intelligent scrambbling of keypoint results
+  - Use fixed hash values based on region hashes
+  - Test results and tweak parameters for best success rates
+- Implement database module
+- Implement web client
 
 ### Planned system specs
 - Bucket-based image hashing
