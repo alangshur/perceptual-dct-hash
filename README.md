@@ -36,3 +36,22 @@
   - Test results and tweak parameters for best success rates
 - Implement database module
 - Implement web client
+
+# Files
+- hash/
+    - ihash.h: Defines top-level hash class
+    - phash.h: Defines image-based perceptual hash class and utilities
+    - dcthash.h: Defines DCT perceptual hash class and utilities
+- bmp.h: Defines class and utilities for converting image files into pixel grid
+- grid.h: Defines class and utilities for handling raw pixel grids
+
+# Module Hierarchy
+.
++--- Hash
+     +--- Image Perceptual Hash
+     +--- DCT Perceptual Hash
++--- PImage
+     +--- BMP Image
+          +--- Pixel Grid
+     +--- Graphics
+    

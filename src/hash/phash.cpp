@@ -3,19 +3,11 @@
 #include <iostream>
 #include <bitset>
 #include <string.h>
-#include "phash.h"
+#include "hash/phash.h"
 using namespace std;
 
-// initialize static member variables
-IPHSErrorWeights ImagePerceptualHash::errorWeights = {
-    0.1, 0.1, 0.1, 0.3, 0.2, 0.1, 0.1
-};
-
 /*
- * Title: ImagePerceptualHash constructor
- * Parameters (3): grid hash target (PixelGrid), error weights (IPHSErrorWeights),
- *   normalization dimensions (uint32_t)
- * Functionality: Initializes error weights and dynamic grid memory.
+ * Initializes error weights and dynamic grid memory.
  */
 ImagePerceptualHash::ImagePerceptualHash(const PixelGrid& grid, 
     const uint32_t normalizationSize) : 
@@ -33,13 +25,10 @@ ImagePerceptualHash::ImagePerceptualHash(const PixelGrid& grid,
 }
 
 /*
- * Title: ImagePerceptualHash public method
- * Parameters (5): first hash (ImagePerceptualHash), second hash (ImagePerceptualHash), 
- *   error tolerance (uint32_t), verbose setting (const bool), normalization dimension (uint32_t)
- * Functionality: Calculates and analyzes error between two perceptual image hashes.
+ * Calculates and analyzes error between two perceptual image hashes.
  */
 IPHSErrorDiagnosis ImagePerceptualHash::compareHashes(ImagePerceptualHash& hs1, ImagePerceptualHash& hs2,
-    const uint32_t errorDegree, const bool verbose, const uint32_t normalizationDimension) {
+    const bool verbose, const uint32_t normalizationDimension) {
     uint8_t hashColorLength = pow(normalizationDimension, 2) / HASH_SEGMENT_SIZE;
     uint32_t redError = 0, greenError = 0, blueError = 0, luminanceError = 0, 
         grayscaleError = 0, combinedError1 = 0, combinedError2 = 0;
@@ -95,15 +84,6 @@ IPHSErrorDiagnosis ImagePerceptualHash::compareHashes(ImagePerceptualHash& hs1, 
     errorDiagnosis.combined1ErrorRat = ((double) combinedError1) / ((double) HASH_SEGMENT_SIZE * hashColorLength);
     errorDiagnosis.combined2ErrorRat = ((double) combinedError2) / ((double) HASH_SEGMENT_SIZE * hashColorLength);
 
-    // calculate final error with weights
-    errorDiagnosis.resultantError = (errorDiagnosis.redErrorRat * errorWeights.redErrorWeight) + 
-        (errorDiagnosis.greenErrorRat * errorWeights.greenErrorWeight) + 
-        (errorDiagnosis.blueErrorRat * errorWeights.blueErrorWeight) + 
-        (errorDiagnosis.luminanceErrorRat * errorWeights.luminanceErrorWeight) + 
-        (errorDiagnosis.grayscaleErrorRat * errorWeights.grayscaleErrorWeight) + 
-        (errorDiagnosis.combined1ErrorRat * errorWeights.combined1ErrorWeight) +
-        (errorDiagnosis.combined2ErrorRat * errorWeights.combined2ErrorWeight);
-
     // print verbose output
     if (verbose) {  
         cout << "Red Error: " << to_string(errorDiagnosis.redErrorRat) << endl;
@@ -113,16 +93,13 @@ IPHSErrorDiagnosis ImagePerceptualHash::compareHashes(ImagePerceptualHash& hs1, 
         cout << "Grayscale Error: " << to_string(errorDiagnosis.grayscaleErrorRat) << endl;
         cout << "Combined Error 1: " << to_string(errorDiagnosis.combined1ErrorRat) << endl;
         cout << "Combined Error 2: " << to_string(errorDiagnosis.combined2ErrorRat) << endl;
-        cout << "Resultant Error: " << to_string(errorDiagnosis.resultantError) << endl << flush;
     }
     
     return errorDiagnosis;
 }
 
 /*
- * Title: ImagePerceptualHash public method
- * Parameters (0): N/A
- * Functionality: Computes and sets the general image perceptual hash.
+ * Computes and sets the general image perceptual hash.
  */
 void ImagePerceptualHash::executeHash(void) {
     if (computedFlag) throw "ImagePerceptualHash Error: Hash already computed.";
@@ -146,9 +123,7 @@ void ImagePerceptualHash::executeHash(void) {
 }
 
 /*
- * Title: ImagePerceptualHash public method
- * Parameters (0): N/A
- * Functionality: Prints bit image of RGB perceptual image hash.
+ * Prints bit image of RGB perceptual image hash.
  */
 void ImagePerceptualHash::printHashBits(void) const {
     if (!computedFlag) throw "ImagePerceptualHash Error: Hash not yet computed.";
@@ -206,9 +181,7 @@ void ImagePerceptualHash::printHashBits(void) const {
 }
 
 /*
- * Title: ImagePerceptualHash private method
- * Parameters (0): N/A
- * Functionality: Reduces supplied image into target grid by normalizing RGB pixel clusters.
+ * Reduces supplied image into target grid by normalizing RGB pixel clusters.
  */
 GridPixel ImagePerceptualHash::normalizeGridRGB(const PixelGrid& pixelGrid, 
     PixelGrid& normalizedGrid) const {
@@ -341,9 +314,7 @@ GridPixel ImagePerceptualHash::normalizeGridRGB(const PixelGrid& pixelGrid,
 }
 
 /*
- * Title: ImagePerceptualHash private method
- * Parameters (0): N/A
- * Functionality: Breaks down normalized image into hash using mean RGB key.
+ * Breaks down normalized image into hash using mean RGB key.
  */
 void ImagePerceptualHash::computeRGBHash(const PixelGrid& normalizedGrid, const GridPixel& mean) {
     const uint32_t luminance = 0.2126 * uint32_t(mean.red) + 0.7152 * uint32_t(mean.green) + 
@@ -388,9 +359,7 @@ void ImagePerceptualHash::computeRGBHash(const PixelGrid& normalizedGrid, const 
 } 
 
 /*
- * Title: ImagePerceptualHash destructor
- * Parameters (0): N/A
- * Functionality: Frees dynamic memory.
+ * Frees dynamic memory.
  */
 ImagePerceptualHash::~ImagePerceptualHash(void) {
     result.redData.reset(nullptr);
@@ -402,46 +371,3 @@ ImagePerceptualHash::~ImagePerceptualHash(void) {
     result.combinedData2.reset(nullptr);
 }
 
-/*
- * Title: TokenPerceptualHash public method
- * Parameters (5): first hash (TokenPerceptualHash), second hash (TokenPerceptualHash), 
- *   error tolerance (uint32_t), verbose setting (bool) normalization dimension (uint32_t)
- * Functionality: Calculates and analyzes error between two perceptual token hashes.
- */
-bool TokenPerceptualHash::compareHashes(TokenPerceptualHash& hs1, TokenPerceptualHash& hs2,
-    const uint32_t errorDegree, const bool verbose, const uint32_t normalizationSize) { 
-    return false; 
-}
-
-/*
- * Title: TokenPerceptualHash public method
- * Parameters (0): N/A
- * Functionality: Computes and sets the specific token perceptual hash.
- */
-void TokenPerceptualHash::executeHash(void) {
-    if (computedFlag) throw "TokenPerceptualHash Error: Hash already computed.";
-    if (regionHashFlag) executeTokenRegionHash();
-    else executeTokenHash();
-    computedFlag = true;
-}
-
-/*
- * Title: TokenPerceptualHash public method
- * Parameters (0): N/A
- * Functionality: Prints bit image of single-data perceptual token hash.
- */
-void TokenPerceptualHash::printHashBits(void) const {}
-
-/*
- * Title: TokenPerceptualHash private method
- * Parameters (0): N/A
- * Functionality: Computes normal token hash throughout entire grid
- */
-void TokenPerceptualHash::executeTokenHash(void) {}
-
-/*
- * Title: TokenPerceptualHash private method
- * Parameters (0): N/A
- * Functionality: Computes token hash based on specific region in grid
- */
-void TokenPerceptualHash::executeTokenRegionHash(void) {}

@@ -7,18 +7,16 @@
 #include <string>
 #include <memory>
 #include <stdlib.h>
-#include "bmp.h"
-#include "grid.h"
+#include "pimg/bmp.h"
+#include "pimg/grid.h"
 using namespace std;
 
-// BMP header struct type definition
 typedef struct {
     int16_t signature; 
     uint32_t fileSize;
     uint32_t dataOffset;
 } BMPHeader;
 
-// BMP info header struct type definition
 typedef struct {
     uint32_t infoHeaderSize; 
     uint32_t width;
@@ -45,8 +43,6 @@ class BMPImage {
         BMPInfoHeader getBMPInfoHeader(void) const { return infoHeader; }
         PixelGrid& getBMPPixelGrid(void) { return *imageGrid; }
         void printBMPPixelGrid(void) const { (*imageGrid).printPixelGrid(); }
-        BMPImage(const BMPImage&) = delete;
-        BMPImage& operator=(const BMPImage&) = delete;
 
     private:
 

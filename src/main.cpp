@@ -2,8 +2,8 @@
 #include <string>
 #include <cstdio>
 #include <ctime>
-#include "bmp.h"
-#include "phash.h"
+#include "hash/phash.h"
+#include "pimg/pimage.h"
 using namespace std;
 
 int main(int args, char* argv[]) {
@@ -13,27 +13,14 @@ int main(int args, char* argv[]) {
     try {
         clock_t start = clock();
 
-        // get first image 
-        BMPImage image1(filename1); 
-        image1.loadBMPImage();
+        PureImage pimg1(filename1, true); 
+        // PureImage pimg2(filename2, true); 
 
-        // get second image
-        BMPImage image2(filename2); 
-        image2.loadBMPImage();
-        
-        // get first hash
-        ImagePerceptualHash hs1(image1.getBMPPixelGrid());
-        hs1.executeHash();
+        // // compare hashes
+        // ImagePerceptualHash::compareHashes(pimg1.getPHash(), pimg2.getPHash());
 
-        // get second hash
-        ImagePerceptualHash hs2(image2.getBMPPixelGrid());
-        hs2.executeHash();
-
-        // compare hashes
-        ImagePerceptualHash::compareHashes(hs1, hs2, 0);
-
-        double duration = (clock() - start) / double(CLOCKS_PER_SEC);
-        cout << endl <<  "Processing time: " << to_string(duration) << endl << flush;
+        // double duration = (clock() - start) / double(CLOCKS_PER_SEC);
+        // cout << endl << "Processing time: " << to_string(duration) << endl << flush;
     }
     catch (const char* e) { cout << e << endl; }
     return 0;

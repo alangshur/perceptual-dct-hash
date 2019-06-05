@@ -7,20 +7,17 @@
 #include <stdlib.h>
 using namespace std;
 
-// grid dimensions struct type definition
 typedef struct {
     size_t height;
     size_t width;
 } GridDimensions;
 
-// grid pixel struct type definition
 typedef struct {
     uint8_t red;
     uint8_t green;
     uint8_t blue;
 } GridPixel;
 
-// grid index struct type definition
 typedef struct {
     uint32_t row; // 1-indexed
     uint32_t column; // 1-indexed

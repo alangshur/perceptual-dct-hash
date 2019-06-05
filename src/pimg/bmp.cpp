@@ -6,7 +6,7 @@
 #include <regex>
 #include <stdio.h>
 #include <opencv2/opencv.hpp>
-#include "bmp.h"
+#include "pimg/bmp.h"
 using namespace std;
 
 #define BMP_HEADER_SIZE 14
@@ -18,9 +18,7 @@ static const char alphaNumLib[] = {'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
 
 /*
- * Title: BMPImage constructor
- * Parameters (1): target filename (std::string)
- * Functionality: Opens supplied filename and saves file session.
+ * Opens supplied filename and saves file session.
  */
 BMPImage::BMPImage(const string& filename, const bool expediteLoad) : loadedFlag(false), 
     expediteLoad(expediteLoad), file(nullptr), imageGrid(nullptr) {
@@ -53,9 +51,7 @@ BMPImage::BMPImage(const string& filename, const bool expediteLoad) : loadedFlag
 }
 
 /*
- * Title: BMPImage public method
- * Parameters (0): N/A
- * Functionality: Parses BMP file and individually loads header, info header, and pixel data.
+ * Parses BMP file and individually loads header, info header, and pixel data.
  */
 void BMPImage::loadBMPImage(void) {
     if (loadedFlag) throw "BMPImage Error: Image already loaded.";
@@ -120,9 +116,7 @@ void BMPImage::loadBMPImage(void) {
 }
 
 /*
- * Title: BMPImage destructor
- * Parameters (0): N/A
- * Functionality: Closes file and frees dynamic memory.
+ * Closes file and frees dynamic memory.
  */
 BMPImage::~BMPImage(void) {
     fclose(file);
