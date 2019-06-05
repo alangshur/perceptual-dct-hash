@@ -53,14 +53,7 @@
                 - Probabilistic model that prevents collisions of focal region hashes
                 - Goal: reduce the size of the focal regions so that we can incorporate far more -- this will boost the effectivness of the utility in avoiding photoshop/cropping changes 
 
-### Protection and corruption
-- How do you prevent people from cracking the algorithm?
-    - Variability: Users can detect the specific changes in a single instance, but will never predict the changes made by the algorithm
-    - User incentive: 
-        - The core user is the only one with access to the original and the mapped
-        - Others won't be able to verify the changes (no access to the original) 
-
-# Comparing images and image conversions
+### Comparing images and image conversions
 - Perceptual hash: ignores color and develop series of weights for Hamming distance
 - Avoiding lossy compression due to image conversion: the images should be broken down into a universal format before processing regardless of whether slight modifications (from lossy copmression conversion) to the individual pixel values have taken place
     - Repeatedly converting to JPEG converges in amount of compression saved
@@ -71,7 +64,7 @@
     - Problem: using slightly modified pixel values in jumps for tree algorithm -- can't trust that the converged low-quality pre-mapping image will be exactly the same each time (small differences in pixel values)
     - Solution to above problem: use bucket-based perceptual hashing around focal points to make steps in tree algorithms (slight differences in cluster of pixels will still allow us to move to the correct place)
 
-# Perceptual Hash Algorithm (Survive color histogram and gamma adjustments)
+### Perceptual Hash Algorithm
 - Reduce pixel size (depending on original size)
 - Convert to greyscale or normalize pixel values (convert to 8-bit pixel intensity)
 - Compute the discrete cosine transform (Fourier-like transformation)
@@ -79,7 +72,7 @@
 - Compute the average value (not including the outlier first frequency term)
 - For each remaining frequency (presumably 64 of them), add a 1 bit to the integer if that frequency is greater than the mean (and a 0 otherwise)
 
-# Files
+### Files
 - hash/
     - ihash.h: Defines top-level hash class
     - phash.h: Defines image-based perceptual hash class and utilities
